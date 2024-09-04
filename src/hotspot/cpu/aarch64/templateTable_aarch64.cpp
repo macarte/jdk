@@ -2267,6 +2267,10 @@ void TemplateTable::resolve_cache_and_index_for_method(int byte_no,
 
   Label resolved, clinit_barrier_slow;
 
+  //if (nmethod::is_trigger_method()) {
+    __ call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::trigger_action_before_call));
+  //}
+
   Bytecodes::Code code = bytecode();
   __ load_method_entry(Rcache, index);
   switch(byte_no) {
@@ -2277,6 +2281,7 @@ void TemplateTable::resolve_cache_and_index_for_method(int byte_no,
       __ lea(temp, Address(Rcache, in_bytes(ResolvedMethodEntry::bytecode2_offset())));
       break;
   }
+
   // Load-acquire the bytecode to match store-release in InterpreterRuntime
   __ ldarb(temp, temp);
   __ subs(zr, temp, (int) code);  // have we resolved this bytecode?
