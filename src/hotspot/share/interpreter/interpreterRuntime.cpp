@@ -971,7 +971,6 @@ void InterpreterRuntime::resolve_invokedynamic(JavaThread* current) {
 // MNCMNC
 JRT_ENTRY(void, InterpreterRuntime::trigger_action_before_call(JavaThread* current)) {
   LastFrameAccessor last_frame(current);
-  // extract receiver from the outgoing argument list if necessary
   ResourceMark rm(current);
   methodHandle m (current, last_frame.method());
   if(m->is_trigger()) {
@@ -983,7 +982,6 @@ JRT_END
 // MNCMNC
 JRT_ENTRY(void, InterpreterRuntime::trigger_action_on_enter(JavaThread* current)) {
   LastFrameAccessor last_frame(current);
-  // extract receiver from the outgoing argument list if necessary
   ResourceMark rm(current);
   methodHandle m (current, last_frame.method());
   if(m->is_trigger()) {
