@@ -134,6 +134,7 @@ void DCmd::register_dcmds(){
   DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<CompileQueueDCmd>(full_export, true, false));
   DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<CodeListDCmd>(full_export, true, false));
   DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<CodeCacheDCmd>(full_export, true, false));
+  DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<AOTEndTrainingDCmd>(full_export, true, false));
 #ifdef LINUX
   DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<PerfMapDCmd>(full_export, true, false));
   DCmdFactory::register_DCmdFactory(new DCmdFactoryImpl<TrimCLibcHeapDCmd>(full_export, true, false));
@@ -991,6 +992,10 @@ void ClassesDCmd::execute(DCmdSource source, TRAPS) {
   VMThread::execute(&vmop);
 }
 
+void AOTEndTrainingDCmd::execute(DCmdSource source, TRAPS) {
+  SharedRuntime::trigger_action("from diagnostic Command", CHECK);
+}
+
 #if INCLUDE_CDS
 #define DEFAULT_CDS_ARCHIVE_FILENAME "java_pid%p_<subcmd>.jsa"
 
@@ -1031,6 +1036,7 @@ void DumpSharedArchiveDCmd::execute(DCmdSource source, TRAPS) {
     output()->print_cr("Invalid command for VM.cds, valid input is static_dump or dynamic_dump");
     return;
   }
+
 
   // call CDS.dumpSharedArchive
   Handle fileh;
