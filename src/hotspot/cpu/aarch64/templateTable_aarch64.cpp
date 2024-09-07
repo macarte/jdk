@@ -2268,7 +2268,7 @@ void TemplateTable::resolve_cache_and_index_for_method(int byte_no,
   Label resolved, clinit_barrier_slow;
 
   //if (nmethod::is_trigger_method()) {
-    __ call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::trigger_action_before_call));
+  //  __ call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::trigger_action_before_call));
   //}
 
   Bytecodes::Code code = bytecode();
