@@ -65,26 +65,27 @@ public class TlsUniqueChannelBindingTest extends SSLEngineTemplate {
         this.ciphersuite = ciphersuite;
     }
 
-    @Override
-    protected SSLEngine configureClientEngine(SSLEngine clientEngine) {
+    /*
+     * Configure the engines after construction so that the protocol
+     * and ciphersuite fields are initialized.  Cannot use the
+     * configureClientEngine/configureServerEngine overrides because
+     * they are called from the super() constructor before field
+     * assignment.
+     */
+    private void configureEngines() {
         clientEngine.setUseClientMode(true);
-        SSLParameters params = clientEngine.getSSLParameters();
-        params.setProtocols(new String[] { protocol });
-        params.setCipherSuites(new String[] { ciphersuite });
-        clientEngine.setSSLParameters(params);
-        return clientEngine;
-    }
+        SSLParameters paramsClient = clientEngine.getSSLParameters();
+        paramsClient.setProtocols(new String[] { protocol });
+        paramsClient.setCipherSuites(new String[] { ciphersuite });
+        clientEngine.setSSLParameters(paramsClient);
 
-    @Override
-    protected SSLEngine configureServerEngine(SSLEngine serverEngine) {
         serverEngine.setUseClientMode(false);
         serverEngine.setNeedClientAuth(true);
-        SSLParameters params = serverEngine.getSSLParameters();
-        params.setProtocols(new String[] {
+        SSLParameters paramsServer = serverEngine.getSSLParameters();
+        paramsServer.setProtocols(new String[] {
                 "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1"
         });
-        serverEngine.setSSLParameters(params);
-        return serverEngine;
+        serverEngine.setSSLParameters(paramsServer);
     }
 
     public static void main(String[] args) throws Exception {
@@ -267,6 +268,8 @@ public class TlsUniqueChannelBindingTest extends SSLEngineTemplate {
      * and application data exchange.
      */
     private void runHandshake() throws Exception {
+        configureEngines();
+
         boolean dataDone = false;
         while (isOpen(clientEngine) || isOpen(serverEngine)) {
             clientEngine.wrap(clientOut, cTOs);

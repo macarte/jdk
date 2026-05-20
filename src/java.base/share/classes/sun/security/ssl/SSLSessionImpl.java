@@ -121,7 +121,24 @@ final class SSLSessionImpl extends ExtendedSSLSession {
     private volatile byte[]      firstFinishedVerifyData;
     private volatile byte[]      clientFinishedVerifyData;
     private static final boolean tlsUniqueChannelBindingEnabled =
-            Debug.getBooleanProperty("sun.security.ssl.enableTlsUniqueChannelBinding", false);
+            getBooleanProperty("sun.security.ssl.enableTlsUniqueChannelBinding", false);
+
+    private static boolean getBooleanProperty(String name, boolean def) {
+        @SuppressWarnings("removal")
+        String val = AccessController.doPrivileged(
+            (PrivilegedAction<String>) () -> System.getProperty(name));
+        if (val == null) {
+            return def;
+        }
+        if (val.equalsIgnoreCase("true")) {
+            return true;
+        } else if (val.equalsIgnoreCase("false")) {
+            return false;
+        } else {
+            throw new IllegalArgumentException
+                (name + " must be either 'true' or 'false'");
+        }
+    }
 
     /*
      * Is the session currently re-established with a session-resumption
