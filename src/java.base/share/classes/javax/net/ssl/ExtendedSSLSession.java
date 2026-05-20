@@ -273,4 +273,34 @@ public abstract class ExtendedSSLSession implements SSLSession {
         throw new UnsupportedOperationException(
                 "Underlying provider does not implement the method");
     }
+
+    /**
+     * Returns the {@code tls-unique} channel binding value as defined
+     * by RFC 5929, which is the first Finished message's verify_data
+     * in the most recent handshake, or {@code null} if not available.
+     *
+     * @implSpec The default implementation returns {@code null}.
+     *
+     * @return a copy of the tls-unique channel binding data, or
+     *         {@code null} if not available
+     * @since 27
+     */
+    public byte[] getTlsUniqueChannelBinding() {
+        return null;
+    }
+
+    /**
+     * Returns the client's Finished verify_data from the most recent
+     * handshake regardless of whether it was a full or abbreviated
+     * (resumed) handshake, or {@code null} if not available.
+     *
+     * @implSpec The default implementation returns {@code null}.
+     *
+     * @return a copy of the client's Finished verify_data, or
+     *         {@code null} if not available
+     * @since 27
+     */
+    public byte[] getClientFinishedVerifyData() {
+        return null;
+    }
 }

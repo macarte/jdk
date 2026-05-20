@@ -405,6 +405,7 @@ final class Finished {
             if (chc.conContext.secureRenegotiation) {
                 chc.conContext.clientVerifyData = fm.verifyData;
             }
+            chc.handshakeSession.setFinishedVerifyData(fm.verifyData, true);
 
             if (chc.statelessResumption) {
                 chc.handshakeConsumers.put(
@@ -468,6 +469,7 @@ final class Finished {
             if (shc.conContext.secureRenegotiation) {
                 shc.conContext.serverVerifyData = fm.verifyData;
             }
+            shc.handshakeSession.setFinishedVerifyData(fm.verifyData, false);
 
             // update the consumers and producers
             if (shc.isResumption) {
@@ -550,6 +552,7 @@ final class Finished {
             if (chc.conContext.secureRenegotiation) {
                 chc.conContext.serverVerifyData = fm.verifyData;
             }
+            chc.handshakeSession.setFinishedVerifyData(fm.verifyData, false);
 
             if (!chc.isResumption) {
                 if (chc.handshakeSession.isRejoinable()) {
@@ -610,6 +613,7 @@ final class Finished {
             if (shc.conContext.secureRenegotiation) {
                 shc.conContext.clientVerifyData = fm.verifyData;
             }
+            shc.handshakeSession.setFinishedVerifyData(fm.verifyData, true);
 
             if (shc.isResumption) {
                 if (shc.handshakeSession.isRejoinable() &&

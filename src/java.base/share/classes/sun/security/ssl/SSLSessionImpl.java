@@ -118,6 +118,11 @@ final class SSLSessionImpl extends ExtendedSSLSession {
     private final Queue<SSLSessionImpl> childSessions =
                                         new ConcurrentLinkedQueue<>();
 
+    private volatile byte[]      firstFinishedVerifyData;
+    private volatile byte[]      clientFinishedVerifyData;
+    private static final boolean tlsUniqueChannelBindingEnabled =
+            Debug.getBooleanProperty("sun.security.ssl.enableTlsUniqueChannelBinding", false);
+
     /*
      * Is the session currently re-established with a session-resumption
      * abbreviated initial handshake?
@@ -654,6 +659,59 @@ final class SSLSessionImpl extends ExtendedSSLSession {
 
     boolean isPSKable() {
         return (ticketNonceCounter > 0);
+    }
+
+    void setFinishedVerifyData(byte[] verifyData, boolean isClientFinished) {
+        if (tlsUniqueChannelBindingEnabled) {
+            byte[] data = verifyData.clone();
+            if (firstFinishedVerifyData == null) {
+                firstFinishedVerifyData = data;
+            }
+            if (isClientFinished) {
+                clientFinishedVerifyData = data;
+            }
+        }
+    }
+
+    /**
+     * Returns the tls-unique channel binding value as defined by
+     * RFC 5929 (the first Finished message in the handshake),
+     * or {@code null} if not available, the feature is disabled,
+     * or the session is not using the extended master secret extension.
+     */
+    @Override
+    public byte[] getTlsUniqueChannelBinding() {
+        return getFinishedVerifyData(firstFinishedVerifyData);
+    }
+
+    /**
+     * Returns the client's Finished verify_data regardless of
+     * handshake type (full or resumption), or {@code null} if not
+     * available, the feature is disabled, or the session is not
+     * using the extended master secret extension.
+     */
+    @Override
+    public byte[] getClientFinishedVerifyData() {
+        return getFinishedVerifyData(clientFinishedVerifyData);
+    }
+
+    private byte[] getFinishedVerifyData(byte[] data) {
+        if (!tlsUniqueChannelBindingEnabled) {
+            return null;
+        }
+
+        if (protocolVersion.useTLS13PlusSpec()) {
+            return null;
+        }
+
+        // RFC 7627: without the extended master secret extension,
+        // channel binding values must not be exported.
+        if (!useExtendedMasterSecret) {
+            return null;
+        }
+
+        byte[] ref = data;
+        return (ref != null) ? ref.clone() : null;
     }
 
     /**
