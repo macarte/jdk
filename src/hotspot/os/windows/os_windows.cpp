@@ -573,6 +573,14 @@ static unsigned thread_native_entry(void* t) {
   thread->record_stack_base_and_size();
   thread->initialize_thread_current();
 
+  // Guarantee enough stack for the stack exception dispatcher and handler.
+  // Note that Windows will only ever increase the current value, so we
+  // don't need to worry about the stack guarantee being reduced and
+  // impacting other uses.
+  ULONG stack_guarantee = (ULONG)
+    StackOverflow::stack_yellow_zone_size() + StackOverflow::stack_red_zone_size();
+  SetThreadStackGuarantee(&stack_guarantee);
+
   OSThread* osthr = thread->osthread();
   assert(osthr->get_state() == RUNNABLE, "invalid os thread state");
 
