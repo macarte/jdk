@@ -24,25 +24,28 @@
 /* @test
  * @requires vm.continuations
  * @library /test/lib
+ * @modules jdk.management
  * @bug 8345294
  * @run main/othervm/native --enable-native-access=ALL-UNNAMED Starvation
  */
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import jdk.management.VirtualThreadSchedulerMXBean;
 import jdk.test.lib.thread.VThreadPinner;
 
 public class Starvation {
     public static void main(String[] args) throws Exception {
+        int parallelism = ManagementFactory.getPlatformMXBean(VirtualThreadSchedulerMXBean.class).getParallelism();
         int iterations;
         if (args.length > 0) {
             iterations = Integer.parseInt(args[0]);
         } else {
-            int nprocs = Runtime.getRuntime().availableProcessors();
-            iterations = 40_000 / nprocs;
+            iterations = 40_000 / parallelism;
         }
 
         for (int i = 1; i <= iterations; i++) {
@@ -50,7 +53,7 @@ public class Starvation {
             var exRef = new AtomicReference<Exception>();
             Thread thread =  Thread.startVirtualThread(() -> {
                 try {
-                    runTest();
+                    runTest(parallelism);
                 } catch (Exception e) {
                     exRef.set(e);
                 }
@@ -65,13 +68,11 @@ public class Starvation {
         }
     }
 
-    static void runTest() throws InterruptedException {
-        int nprocs = Runtime.getRuntime().availableProcessors();
-
+    static void runTest(int parallelism) throws InterruptedException {
         var threads = new ArrayList<Thread>();
         Object lock = new Object();
         synchronized (lock) {
-            for (int i = 0; i < nprocs - 1; i++) {
+            for (int i = 0; i < parallelism - 1; i++) {
                 var started = new CountDownLatch(1);
                 Thread thread = Thread.startVirtualThread(() -> {
                     started.countDown();
